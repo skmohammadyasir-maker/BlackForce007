@@ -1,257 +1,125 @@
-// Game script — advanced template
-const TIMER = 15;
 let questions = [];
-let shuffled = [];
-let currentIndex = 0;
-let timer = null;
-let timeLeft = TIMER;
-let playerName = '';
-let score = 0;
-let coins = 0;
+let currentQuestion = 0;
 let correctCount = 0;
 let wrongCount = 0;
+let coins = 0;
+let timerInterval;
+let timeLeft = 30;
+let playerName = "";
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-// DOM
-const nameModal = document.getElementById('nameModal');
-const playerNameInput = document.getElementById('playerNameInput');
-const modalStartBtn = document.getElementById('modalStartBtn');
+document.getElementById("start-btn").addEventListener("click", startGame);
+document.getElementById("next-btn").addEventListener("click", nextQuestion);
 
-const questionText = document.getElementById('questionText');
-const choicesWrap = document.getElementById('choices');
-const timerEl = document.getElementById('timer');
-const qIndexEl = document.getElementById('qIndex');
-const qTotalEl = document.getElementById('qTotal');
-const currentPlayerEl = document.getElementById('currentPlayer');
-const coinsEl = document.getElementById('coins');
-const correctCountEl = document.getElementById('correctCount');
-const wrongCountEl = document.getElementById('wrongCount');
-const leaderboardEl = document.getElementById('leaderboard');
-const messageEl = document.getElementById('message');
-const restartBtn = document.getElementById('restartBtn');
+async function startGame() {
+  playerName = document.getElementById("player-name").value.trim();
+  if (!playerName) return alert("অনুগ্রহ করে আপনার নাম লিখুন!");
+  document.getElementById("name-screen").classList.add("hidden");
+  document.getElementById("quiz-screen").classList.remove("hidden");
+  document.getElementById("display-name").innerText = playerName;
 
-// audio beep
-function beep(freq=440,dur=0.08,vol=0.05,type='sine'){
-  try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = type; o.frequency.value = freq;
-    g.gain.value = vol;
-    o.connect(g); g.connect(ctx.destination);
-    o.start();
-    setTimeout(()=>{ o.stop(); ctx.close(); }, dur*1000);
-  }catch(e){}
-}
-
-// load questions
-async function loadQuestions(){
-  try{
-    const res = await fetch('questions.json');
-    questions = await res.json();
-  }catch(e){
-    console.error('questions.json load failed', e);
-    questions = [];
-  }
-}
-
-// shuffle helper
-function shuffle(a){
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
-
-// show name modal on open
-window.addEventListener('load', async ()=>{
-  await loadQuestions();
-  nameModal.style.display = 'flex';
-  qTotalEl.textContent = questions.length || 0;
-});
-
-// modal start
-modalStartBtn.addEventListener('click', ()=>{
-  const v = playerNameInput.value.trim();
-  if(!v){ alert('নাম লিখুন'); return; }
-  playerName = v;
-  nameModal.style.display = 'none';
-  startNewGame();
-});
-
-// start new game
-function startNewGame(){
-  shuffled = shuffle(questions.slice());
-  currentIndex = 0;
-  score = 0; coins = 0; correctCount = 0; wrongCount = 0;
-  updatePlayerUI();
-  updateStatsUI();
-  renderQuestion();
-  persistTinyPlayer(); // show current player instantly
-}
-
-// render question
-function renderQuestion(){
-  if(currentIndex >= shuffled.length){
-    endGame();
-    return;
-  }
-  const q = shuffled[currentIndex];
-  questionText.textContent = q.question;
-  choicesWrap.innerHTML = '';
-  q.options.forEach((opt, i) => {
-    const el = document.createElement('div');
-    el.className = 'choice';
-    el.textContent = opt;
-    el.dataset.idx = i;
-    el.addEventListener('click', ()=> selectOption(i, el));
-    choicesWrap.appendChild(el);
-  });
-  qIndexEl.textContent = currentIndex+1;
-  qTotalEl.textContent = shuffled.length;
+  const res = await fetch("questions.json");
+  questions = await res.json();
+  shuffleArray(questions);
+  showQuestion();
   startTimer();
-  // reset message
-  messageEl.textContent = '';
 }
 
-// timer
-function startTimer(){
-  clearInterval(timer);
-  timeLeft = TIMER;
-  timerEl.textContent = timeLeft;
-  timer = setInterval(()=>{
-    timeLeft--;
-    timerEl.textContent = timeLeft;
-    if(timeLeft <= 3) timerEl.style.color = '#f97316'; else timerEl.style.color = '';
-    if(timeLeft <= 0){ clearInterval(timer); handleTimeout(); }
-  },1000);
-}
-function stopTimer(){ clearInterval(timer); timer=null; }
+function showQuestion() {
+  resetState();
+  const q = questions[currentQuestion];
+  document.getElementById("question-text").innerText = q.question;
+  let shuffledOptions = [...q.options];
+  shuffleArray(shuffledOptions);
 
-// when time out
-function handleTimeout(){
-  revealAnswer(null, true);
-  beep(200,0.12,0.06,'sawtooth');
-}
-
-// select option
-function selectOption(selectedIdx, el){
-  if(timer===null) return; // already answered
-  stopTimer();
-  revealAnswer(selectedIdx, false);
-}
-
-// reveal answer
-function revealAnswer(selectedIdx, timedOut){
-  const q = shuffled[currentIndex];
-  const correct = Number(q.correctIndex);
-  const choiceEls = Array.from(choicesWrap.children);
-  choiceEls.forEach((el, i) => {
-    el.classList.add('dim');
-    if(i === correct){
-      el.classList.remove('dim'); el.classList.add('correct','big');
-      // spin effect after slight delay
-      setTimeout(()=> el.classList.add('spin'), 50);
-    }
-    if(selectedIdx !== null && i === selectedIdx && i !== correct){
-      el.classList.remove('dim'); el.classList.add('wrong','big');
-    }
-    // disable click
-    el.style.pointerEvents = 'none';
+  shuffledOptions.forEach(option => {
+    const btn = document.createElement("button");
+    btn.innerText = option;
+    btn.classList.add("option");
+    btn.addEventListener("click", () => selectAnswer(btn, q.answer));
+    document.getElementById("options-container").appendChild(btn);
   });
+}
 
-  // scoring & counts
-  if(!timedOut && selectedIdx === correct){
-    score += 10;
-    coins += 5;
+function selectAnswer(btn, correctAns) {
+  const allOptions = document.querySelectorAll(".option");
+  allOptions.forEach(b => b.disabled = true);
+
+  if (btn.innerText === correctAns) {
+    btn.classList.add("correct");
     correctCount++;
-    messageEl.textContent = 'সঠিক উত্তর! +10 পয়েন্ট';
-    beep(880,0.08,0.06,'sine');
+    coins += 10;
   } else {
+    btn.classList.add("wrong");
     wrongCount++;
-    messageEl.textContent = 'ভুল উত্তর!';
-    beep(220,0.12,0.06,'sawtooth');
+    // highlight correct
+    allOptions.forEach(o => {
+      if (o.innerText === correctAns) o.classList.add("correct");
+    });
   }
-  updateStatsUI();
-  persistTinyPlayer(); // update live tiny display
 
-  // after short delay go to next
-  setTimeout(()=>{
-    // remove spin class to allow next time spin
-    const correctEl = choiceEls[Number(correct)];
-    if(correctEl) correctEl.classList.remove('spin');
-    currentIndex++;
-    renderQuestion();
-  },900);
+  document.getElementById("correct-count").innerText = correctCount;
+  document.getElementById("wrong-count").innerText = wrongCount;
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("next-btn").classList.remove("hidden");
 }
 
-// update top UI
-function updatePlayerUI(){
-  currentPlayerEl.textContent = playerName;
-  coinsEl.textContent = `Coins: ${coins}`;
-}
-function updateStatsUI(){
-  coinsEl.textContent = `Coins: ${coins}`;
-  correctCountEl.textContent = `✔ ${correctCount}`;
-  wrongCountEl.textContent = `✖ ${wrongCount}`;
-  // update small stats persisted if needed
-}
-
-// leaderboard persistence (localStorage)
-function getLeaderboard(){ try{ return JSON.parse(localStorage.getItem('quiz_leaderboard')||'[]'); }catch(e){ return []; } }
-function saveLeaderboard(lb){ localStorage.setItem('quiz_leaderboard', JSON.stringify(lb)); }
-
-function persistTinyPlayer(){
-  // show current play immediately in leaderboard area as "ongoing"
-  renderLeaderboard(); // ensure base list is shown
-  const existing = document.getElementById('tiny-current');
-  if(existing) existing.remove();
-  const row = document.createElement('div');
-  row.className = 'row';
-  row.id = 'tiny-current';
-  row.innerHTML = `<div class="name">${playerName} <small class="muted">(playing)</small></div><div class="points">${score} pts</div>`;
-  leaderboardEl.prepend(row);
-}
-
-// when game ends, save to leaderboard cumulatively
-function endGame(){
-  stopTimer();
-  messageEl.textContent = `গেম শেষ — ${playerName}, মোট স্কোর: ${score}`;
-  // accumulate in leaderboard: add or update player's cumulative points
-  const lb = getLeaderboard();
-  const found = lb.find(r=> r.name === playerName);
-  const now = new Date().toISOString();
-  if(found){
-    found.points = (found.points||0) + score;
-    found.last = now;
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+    document.getElementById("next-btn").classList.add("hidden");
+    resetTimer();
   } else {
-    lb.push({ name: playerName, points: score, last: now });
+    endGame();
   }
-  // sort by points desc
-  lb.sort((a,b)=> b.points - a.points || new Date(b.last) - new Date(a.last));
-  saveLeaderboard(lb);
-  renderLeaderboard();
 }
 
-// render leaderboard on side
-function renderLeaderboard(){
-  const lb = getLeaderboard();
-  leaderboardEl.innerHTML = '';
-  // show top players
-  if(lb.length === 0){
-    leaderboardEl.innerHTML = '<div class="muted">No players yet</div>';
-    return;
+function resetState() {
+  document.getElementById("options-container").innerHTML = "";
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
-  lb.forEach(r=>{
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.innerHTML = `<div class="name">${r.name}</div><div class="points">${r.points} pts</div>`;
-    leaderboardEl.appendChild(row);
+}
+
+function startTimer() {
+  timeLeft = 30;
+  document.getElementById("timer").innerText = timeLeft;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      nextQuestion();
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  startTimer();
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  alert(`${playerName}, গেম শেষ! ✅\nসঠিক: ${correctCount} | ভুল: ${wrongCount} | কয়েন: ${coins}`);
+
+  leaderboard.push({ name: playerName, score: coins });
+  leaderboard.sort((a, b) => b.score - a.score);
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  const list = document.getElementById("leaderboard-list");
+  list.innerHTML = "";
+  leaderboard.slice(0, 10).forEach((p, i) => {
+    const li = document.createElement("li");
+    li.textContent = `${i + 1}. ${p.name} — ${p.score}💰`;
+    list.appendChild(li);
   });
 }
-
-// restart
-restartBtn.addEventListener('click', ()=>{
-  if(confirm('নতুন গেম শুরু করবেন? (বর্তমান স্কোর সেভ হবে)')){
-    // show modal to enter name again or use same name
-    nameModal.style.display = 'flex';
-    playerNameInput.value = playerName;
-  }
-});
