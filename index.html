@@ -3,31 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Game 2025</title>
+    <title>Black Force 007 – Ultimate Quiz Challenge</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Life Quiz 2025</h1>
-        <div id="player-name-screen">
+        <h1>Black Force 007 – Ultimate Quiz Challenge</h1>
+        <div id="player-name-input">
             <input type="text" id="playerName" placeholder="আপনার নাম লিখুন">
-            <button onclick="startGame()">Start Game</button>
+            <button onclick="startGame()">শুরু করুন</button>
         </div>
-        <div id="quiz-screen" class="hidden">
-            <div id="question-container">
-                <div id="question"></div>
-                <div id="options"></div>
-                <div id="timer">15</div>
+
+        <div id="quiz-container" class="hidden">
+            <div class="info-bar">
+                <div>টাইমার: <span id="timer">15</span> সেকেন্ড</div>
+                <div>স্কোর: <span id="score">0</span></div>
+                <div>সঠিক: <span id="correctCount">0</span>, ভুল: <span id="wrongCount">0</span></div>
+                <div>কয়েন: <span id="coins">0</span></div>
             </div>
-            <div id="feedback"></div>
+            <div id="question-box">
+                <p id="question-text"></p>
+                <div id="options"></div>
+            </div>
         </div>
-        <div id="result-screen" class="hidden">
-            <h2>Result</h2>
-            <div id="score"></div>
-            <div id="players-list"></div>
-            <button onclick="restartGame()">Play Again</button>
+
+        <div id="result-container" class="hidden">
+            <h2>গেম শেষ!</h2>
+            <p>নাম: <span id="playerDisplay"></span></p>
+            <p>স্কোর: <span id="finalScore"></span></p>
+            <p>সঠিক উত্তর: <span id="finalCorrect"></span>, ভুল উত্তর: <span id="finalWrong"></span></p>
+            <button onclick="restartGame()">আবার খেলা</button>
+            <h3>সকল খেলোয়াড়ের স্কোর</h3>
+            <ul id="leaderboard"></ul>
         </div>
     </div>
+
+    <audio id="correctSound" src="correct.mp3"></audio>
+    <audio id="wrongSound" src="wrong.mp3"></audio>
+
     <script src="script.js"></script>
 </body>
-          </html>
+</html>
