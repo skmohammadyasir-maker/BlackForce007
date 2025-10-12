@@ -1,46 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Black Force 007 – Ultimate Quiz Challenge</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>আইনের খেলায় — বুদ্ধির পরীক্ষা | Black Force 007</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Black Force 007 – Ultimate Quiz Challenge</h1>
-        <div id="player-name-input">
-            <input type="text" id="playerName" placeholder="আপনার নাম লিখুন">
-            <button onclick="startGame()">শুরু করুন</button>
-        </div>
-
-        <div id="quiz-container" class="hidden">
-            <div class="info-bar">
-                <div>টাইমার: <span id="timer">15</span> সেকেন্ড</div>
-                <div>স্কোর: <span id="score">0</span></div>
-                <div>সঠিক: <span id="correctCount">0</span>, ভুল: <span id="wrongCount">0</span></div>
-                <div>কয়েন: <span id="coins">0</span></div>
-            </div>
-            <div id="question-box">
-                <p id="question-text"></p>
-                <div id="options"></div>
-            </div>
-        </div>
-
-        <div id="result-container" class="hidden">
-            <h2>গেম শেষ!</h2>
-            <p>নাম: <span id="playerDisplay"></span></p>
-            <p>স্কোর: <span id="finalScore"></span></p>
-            <p>সঠিক উত্তর: <span id="finalCorrect"></span>, ভুল উত্তর: <span id="finalWrong"></span></p>
-            <button onclick="restartGame()">আবার খেলা</button>
-            <h3>সকল খেলোয়াড়ের স্কোর</h3>
-            <ul id="leaderboard"></ul>
-        </div>
+  <!-- Name modal -->
+  <div id="nameModal" class="modal">
+    <div class="modal-card">
+      <h1 class="title-red">আইনের খেলায় — বুদ্ধির পরীক্ষা</h1>
+      <div class="subtitle">Black Force 007 — Gaming Advanced Template</div>
+      <input id="playerNameInput" placeholder="আপনার নাম লিখুন (প্রয়োগ করুন)" maxlength="30" />
+      <button id="modalStartBtn">শুরু করুন</button>
+      <small class="muted">নাম দিলে আপনার নাম সব সময় স্কোরবোর্ড-এ দেখাবে।</small>
     </div>
+  </div>
 
-    <audio id="correctSound" src="correct.mp3"></audio>
-    <audio id="wrongSound" src="wrong.mp3"></audio>
+  <div class="app">
+    <header class="top">
+      <div class="title-block">
+        <div class="title-red small">আইনের খেলায় — বুদ্ধির পরীক্ষা</div>
+        <div class="subtitle">Black Force 007</div>
+      </div>
+      <div class="player-info">
+        <div id="currentPlayer">—</div>
+        <div class="stats-inline">
+          <span id="coins">Coins: 0</span>
+          <span id="correctCount">✔ 0</span>
+          <span id="wrongCount">✖ 0</span>
+        </div>
+      </div>
+    </header>
 
-    <script src="script.js"></script>
+    <main>
+      <section class="question-area">
+        <div class="question-box yellow">
+          <div id="questionText">লোড হচ্ছে…</div>
+        </div>
+
+        <div id="choices" class="choices"></div>
+
+        <div class="controls">
+          <div class="timer">⏱ <span id="timer">15</span>s</div>
+          <div class="progress">Q <span id="qIndex">0</span>/<span id="qTotal">0</span></div>
+        </div>
+      </section>
+
+      <aside class="leaderboard-area">
+        <h3>Players — Live Scores</h3>
+        <div id="leaderboard" class="leaderboard"></div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="footer-row">
+        <div id="message" class="muted">Good luck!</div>
+        <button id="restartBtn" class="small-btn">নতুন গেম</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
