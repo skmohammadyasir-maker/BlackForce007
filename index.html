@@ -1,65 +1,44 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>আইনের খেলায় — বুদ্ধির পরীক্ষা | Black Force 007</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>আইনের খেলায় বুদ্ধির পরীক্ষা - Black Force 007</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Name modal -->
-  <div id="nameModal" class="modal">
-    <div class="modal-card">
-      <h1 class="title-red">আইনের খেলায় — বুদ্ধির পরীক্ষা</h1>
-      <div class="subtitle">Black Force 007 — Gaming Advanced Template</div>
-      <input id="playerNameInput" placeholder="আপনার নাম লিখুন (প্রয়োগ করুন)" maxlength="30" />
-      <button id="modalStartBtn">শুরু করুন</button>
-      <small class="muted">নাম দিলে আপনার নাম সব সময় স্কোরবোর্ড-এ দেখাবে।</small>
+  <div id="game-container">
+    <h1 class="title">আইনের খেলায় বুদ্ধির পরীক্ষা</h1>
+    <h3 class="subtitle">⚔️ Black Force 007 ⚔️</h3>
+
+    <div id="name-screen">
+      <h2>আপনার নাম লিখুন 👇</h2>
+      <input type="text" id="player-name" placeholder="আপনার নাম...">
+      <button id="start-btn">গেম শুরু করুন</button>
     </div>
-  </div>
 
-  <div class="app">
-    <header class="top">
-      <div class="title-block">
-        <div class="title-red small">আইনের খেলায় — বুদ্ধির পরীক্ষা</div>
-        <div class="subtitle">Black Force 007</div>
-      </div>
+    <div id="quiz-screen" class="hidden">
       <div class="player-info">
-        <div id="currentPlayer">—</div>
-        <div class="stats-inline">
-          <span id="coins">Coins: 0</span>
-          <span id="correctCount">✔ 0</span>
-          <span id="wrongCount">✖ 0</span>
-        </div>
+        <p><strong>খেলোয়াড়:</strong> <span id="display-name"></span></p>
+        <p>সঠিক উত্তর: <span id="correct-count">0</span> | ভুল: <span id="wrong-count">0</span> | ⏰ <span id="timer">30</span>সেকেন্ড</p>
+        <p>কয়েন 💰: <span id="coins">0</span></p>
       </div>
-    </header>
 
-    <main>
-      <section class="question-area">
-        <div class="question-box yellow">
-          <div id="questionText">লোড হচ্ছে…</div>
-        </div>
-
-        <div id="choices" class="choices"></div>
-
-        <div class="controls">
-          <div class="timer">⏱ <span id="timer">15</span>s</div>
-          <div class="progress">Q <span id="qIndex">0</span>/<span id="qTotal">0</span></div>
-        </div>
-      </section>
-
-      <aside class="leaderboard-area">
-        <h3>Players — Live Scores</h3>
-        <div id="leaderboard" class="leaderboard"></div>
-      </aside>
-    </main>
-
-    <footer>
-      <div class="footer-row">
-        <div id="message" class="muted">Good luck!</div>
-        <button id="restartBtn" class="small-btn">নতুন গেম</button>
+      <div class="question-box">
+        <table>
+          <tr><th id="question-text"></th></tr>
+        </table>
       </div>
-    </footer>
+
+      <div id="options-container"></div>
+
+      <button id="next-btn" class="hidden">পরের প্রশ্ন ➡️</button>
+
+      <div id="leaderboard">
+        <h3>🏆 লিডারবোর্ড 🏆</h3>
+        <ul id="leaderboard-list"></ul>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
