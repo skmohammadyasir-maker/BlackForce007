@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game 2025</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Life Quiz 2025</h1>
+        <div id="player-name-screen">
+            <input type="text" id="playerName" placeholder="আপনার নাম লিখুন">
+            <button onclick="startGame()">Start Game</button>
+        </div>
+        <div id="quiz-screen" class="hidden">
+            <div id="question-container">
+                <div id="question"></div>
+                <div id="options"></div>
+                <div id="timer">15</div>
+            </div>
+            <div id="feedback"></div>
+        </div>
+        <div id="result-screen" class="hidden">
+            <h2>Result</h2>
+            <div id="score"></div>
+            <div id="players-list"></div>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+          </html>
