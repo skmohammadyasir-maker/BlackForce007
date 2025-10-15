@@ -8,19 +8,36 @@ let timeLeft = 30;
 let playerName = "";
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
+// Start Quiz after login
+function startQuiz() {
+  // Hide login screen
+  document.getElementById("login-screen").classList.add("hidden");
+  // Show name input screen
+  document.getElementById("name-screen").classList.remove("hidden");
+}
+
+// Start Game after entering player name
 document.getElementById("start-btn").addEventListener("click", startGame);
 document.getElementById("next-btn").addEventListener("click", nextQuestion);
 
 async function startGame() {
   playerName = document.getElementById("player-name").value.trim();
   if (!playerName) return alert("অনুগ্রহ করে আপনার নাম লিখুন!");
+  
   document.getElementById("name-screen").classList.add("hidden");
   document.getElementById("quiz-screen").classList.remove("hidden");
   document.getElementById("display-name").innerText = playerName;
 
+  // Fetch questions from JSON
   const res = await fetch("questions.json");
   questions = await res.json();
   shuffleArray(questions);
+
+  // Take first 30 random questions
+  if (questions.length > 30) {
+    questions = questions.slice(0, 30);
+  }
+
   showQuestion();
   startTimer();
 }
@@ -29,6 +46,7 @@ function showQuestion() {
   resetState();
   const q = questions[currentQuestion];
   document.getElementById("question-text").innerText = q.question;
+
   let shuffledOptions = [...q.options];
   shuffleArray(shuffledOptions);
 
@@ -36,6 +54,9 @@ function showQuestion() {
     const btn = document.createElement("button");
     btn.innerText = option;
     btn.classList.add("option");
+    btn.style.padding = "10px";
+    btn.style.margin = "5px";
+    btn.style.fontSize = "1em";
     btn.addEventListener("click", () => selectAnswer(btn, q.answer));
     document.getElementById("options-container").appendChild(btn);
   });
@@ -46,15 +67,19 @@ function selectAnswer(btn, correctAns) {
   allOptions.forEach(b => b.disabled = true);
 
   if (btn.innerText === correctAns) {
-    btn.classList.add("correct");
+    btn.classList.add("correct"); // Green highlight
+    btn.style.fontSize = "1.3em"; // Bigger font
     correctCount++;
     coins += 10;
   } else {
-    btn.classList.add("wrong");
+    btn.classList.add("wrong"); // Red highlight
     wrongCount++;
-    // highlight correct
+    // Highlight correct answer
     allOptions.forEach(o => {
-      if (o.innerText === correctAns) o.classList.add("correct");
+      if (o.innerText === correctAns) {
+        o.classList.add("correct");
+        o.style.fontSize = "1.3em"; // Bigger font
+      }
     });
   }
 
@@ -112,6 +137,14 @@ function endGame() {
   leaderboard.sort((a, b) => b.score - a.score);
   localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
   updateLeaderboard();
+
+  // Reset for new game
+  currentQuestion = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  coins = 0;
+  document.getElementById("quiz-screen").classList.add("hidden");
+  document.getElementById("name-screen").classList.remove("hidden");
 }
 
 function updateLeaderboard() {
