@@ -1,23 +1,90 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>আইনের খেলায় বুদ্ধির পরীক্ষা - Black Force 007</title>
-  <link rel="stylesheet" href="styles.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align:center; padding:10px; background:#f8f9fa;}
-    #game-container { max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
-    button { padding:10px 20px; margin:5px; cursor:pointer; border:none; border-radius:5px; }
-    #options-container button { display:block; width:100%; margin:5px 0; font-size:1em; }
-    .correct { background-color: #28a745 !important; color:#fff; font-weight:bold; font-size:1.2em; }
-    .wrong { background-color: #dc3545 !important; color:#fff; font-weight:bold; }
-    .hidden { display:none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আইনের খেলায় বুদ্ধির পরীক্ষা - Black Force 007</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    margin:0;
+    padding:0;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:#fff;
+    text-align:center;
+  }
+  #game-container {
+    max-width:700px;
+    margin:20px auto;
+    background:#1f1f1f;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 0 20px rgba(0,0,0,0.7);
+  }
+  h1.title { font-size:2em; color:#ffd700; text-shadow: 2px 2px #000;}
+  h3.subtitle { font-size:1.2em; color:#ff6347; margin-bottom:20px; }
+
+  input {
+    width:80%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:10px;
+    border:none;
+    outline:none;
+  }
+  button {
+    padding:10px 25px;
+    margin:5px;
+    cursor:pointer;
+    border:none;
+    border-radius:10px;
+    background:#ff6347;
+    color:#fff;
+    font-weight:bold;
+    transition:0.3s;
+  }
+  button:hover { background:#ffd700; color:#000; transform:scale(1.05);}
+  #options-container button {
+    display:block;
+    width:100%;
+    margin:5px 0;
+    font-size:1em;
+    transition:0.3s;
+  }
+  #options-container button:hover { transform:scale(1.05); }
+  .correct { background-color: #28a745 !important; color:#fff; font-weight:bold; font-size:1.2em; animation: glow 1s ease-in-out;}
+  .wrong { background-color: #dc3545 !important; color:#fff; font-weight:bold; animation: shake 0.5s;}
+  .hidden { display:none; }
+
+  #leaderboard { margin-top:20px; background:#333; padding:10px; border-radius:10px;}
+  #leaderboard-list li { margin:5px 0; color:#ffd700; font-weight:bold; }
+
+  /* Animations */
+  @keyframes glow {
+    0% { box-shadow: 0 0 5px #28a745; }
+    50% { box-shadow: 0 0 20px #28a745; }
+    100% { box-shadow: 0 0 5px #28a745; }
+  }
+  @keyframes shake {
+    0% { transform: translateX(0px);}
+    25% { transform: translateX(-5px);}
+    50% { transform: translateX(5px);}
+    75% { transform: translateX(-5px);}
+    100% { transform: translateX(0px);}
+  }
+
+  .player-info { margin-bottom:15px; font-weight:bold; }
+  .question-box { background:#222; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 0 10px #000; }
+
+  #timer { color:#ffd700; font-weight:bold; font-size:1.2em; }
+  #coins { color:#00ffff; font-weight:bold; }
+
+</style>
 </head>
 <body>
 
@@ -57,7 +124,6 @@
   </div>
 </div>
 
-<!-- Firebase Auth Script -->
 <script>
 // Firebase Config
 const firebaseConfig = {
@@ -73,63 +139,47 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-// Signup Function
-function signup() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// Signup/Login
+function signup(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
   auth.createUserWithEmailAndPassword(email,password)
-    .then(userCredential => { 
-      document.getElementById("login-screen").classList.add("hidden");
-      startQuiz(userCredential.user);
-    })
-    .catch(error => { document.getElementById("auth-msg").innerText = error.message; });
+  .then(user=>{ document.getElementById("login-screen").classList.add("hidden"); startQuiz(user.user); })
+  .catch(e=>document.getElementById("auth-msg").innerText=e.message);
 }
-
-// Login Function
-function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
   auth.signInWithEmailAndPassword(email,password)
-    .then(userCredential => { 
-      document.getElementById("login-screen").classList.add("hidden");
-      startQuiz(userCredential.user);
-    })
-    .catch(error => { document.getElementById("auth-msg").innerText = error.message; });
+  .then(user=>{ document.getElementById("login-screen").classList.add("hidden"); startQuiz(user.user); })
+  .catch(e=>document.getElementById("auth-msg").innerText=e.message);
 }
-</script>
 
-<!-- Quiz Script -->
-<script>
-let questions=[], currentQuestion=0, correctCount=0, wrongCount=0, coins=0, timerInterval, timeLeft=30, playerName="", leaderboard=[];
-const nextBtn = document.getElementById("next-btn");
+// Quiz Logic
+let questions=[],currentQuestion=0,correctCount=0,wrongCount=0,coins=0,timerInterval,timeLeft=30,playerName="";
+const nextBtn=document.getElementById("next-btn");
 
-// Start Quiz
 async function startQuiz(user){
-  playerName = user.email;
+  playerName=user.email;
   document.getElementById("quiz-screen").classList.remove("hidden");
-  document.getElementById("display-name").innerText = playerName;
-
-  // Load questions
-  const res = await fetch("questions.json");
-  questions = await res.json();
+  document.getElementById("display-name").innerText=playerName;
+  const res=await fetch("questions.json");
+  questions=await res.json();
   shuffleArray(questions);
-  if(questions.length>30) questions = questions.slice(0,30);
-
+  if(questions.length>30) questions=questions.slice(0,30);
   showQuestion();
   startTimer();
   loadLeaderboardFirebase();
 }
 
-// Show Question
 function showQuestion(){
   document.getElementById("options-container").innerHTML="";
-  const q = questions[currentQuestion];
-  document.getElementById("question-text").innerText = q.question;
-  let shuffled = [...q.options];
-  shuffleArray(shuffled);
-  shuffled.forEach(option=>{
-    const btn = document.createElement("button");
-    btn.innerText = option;
+  const q=questions[currentQuestion];
+  document.getElementById("question-text").innerText=q.question;
+  let shuffled=[...q.options]; shuffleArray(shuffled);
+  shuffled.forEach(opt=>{
+    const btn=document.createElement("button");
+    btn.innerText=opt;
     btn.classList.add("option");
     btn.addEventListener("click",()=>selectAnswer(btn,q.answer));
     document.getElementById("options-container").appendChild(btn);
@@ -137,14 +187,11 @@ function showQuestion(){
   nextBtn.classList.add("hidden");
 }
 
-// Select Answer
-function selectAnswer(btn, correctAns){
-  const allOptions = document.querySelectorAll(".option");
+function selectAnswer(btn,correctAns){
+  const allOptions=document.querySelectorAll(".option");
   allOptions.forEach(b=>b.disabled=true);
-  if(btn.innerText===correctAns){
-    btn.classList.add("correct"); correctCount++; coins+=10;
-  }else{
-    btn.classList.add("wrong"); wrongCount++;
+  if(btn.innerText===correctAns){ btn.classList.add("correct"); correctCount++; coins+=10; }
+  else{ btn.classList.add("wrong"); wrongCount++;
     allOptions.forEach(o=>{ if(o.innerText===correctAns) o.classList.add("correct"); });
   }
   document.getElementById("correct-count").innerText=correctCount;
@@ -153,54 +200,24 @@ function selectAnswer(btn, correctAns){
   nextBtn.classList.remove("hidden");
 }
 
-// Next Question
 nextBtn.addEventListener("click",()=>{
   currentQuestion++;
   if(currentQuestion<questions.length){ showQuestion(); resetTimer(); }
-  else { endGame(); }
+  else{ endGame(); }
 });
 
-// Timer
-function startTimer(){ timeLeft=30; document.getElementById("timer").innerText=timeLeft;
-timerInterval=setInterval(()=>{ timeLeft--; document.getElementById("timer").innerText=timeLeft;
-if(timeLeft<=0){ clearInterval(timerInterval); currentQuestion++; if(currentQuestion<questions.length){ showQuestion(); resetTimer(); } else{ endGame(); } } },1000); }
-
+function startTimer(){
+  timeLeft=30;
+  document.getElementById("timer").innerText=timeLeft;
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText=timeLeft;
+    if(timeLeft<=0){ clearInterval(timerInterval); currentQuestion++; if(currentQuestion<questions.length){ showQuestion(); resetTimer(); } else{ endGame(); } }
+  },1000);
+}
 function resetTimer(){ clearInterval(timerInterval); startTimer(); }
 function shuffleArray(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
 
-// End Game
 function endGame(){
   clearInterval(timerInterval);
-  alert(`${playerName}, গেম শেষ! ✅\nসঠিক: ${correctCount} | ভুল: ${wrongCount} | কয়েন: ${coins}`);
-  // Firebase update
-  const user = firebase.auth().currentUser;
-  if(user){
-    firebase.database().ref('leaderboard/'+user.uid).set({
-      name:playerName, coins:coins, correct:correctCount, wrong:wrongCount, timestamp:Date.now()
-    });
-  }
-  // Reset
-  currentQuestion=0; correctCount=0; wrongCount=0; coins=0;
-  document.getElementById("quiz-screen").classList.add("hidden");
-}
-
-// Load Leaderboard from Firebase
-function loadLeaderboardFirebase(){
-  firebase.database().ref('leaderboard').orderByChild('coins').limitToLast(10)
-  .on('value', snapshot=>{
-    const list=document.getElementById("leaderboard-list");
-    list.innerHTML="";
-    const players=[];
-    snapshot.forEach(child=>{players.push(child.val());});
-    players.reverse(); // top score first
-    players.forEach((p,i)=>{
-      const li=document.createElement("li");
-      li.textContent=`${i+1}. ${p.name} — ${p.coins}💰`;
-      list.appendChild(li);
-    });
-  });
-}
-</script>
-
-</body>
-</html>
+  alert(`${playerName}, গেম শেষ! ✅\nসঠিক: ${correctCount} | ভুল: ${wrongCount} | কয়েন: ${
